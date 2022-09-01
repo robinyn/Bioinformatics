@@ -1,2 +1,2 @@
-Bioinformatics\n
+Bioinformatics
 Bioinformatics is fun!
