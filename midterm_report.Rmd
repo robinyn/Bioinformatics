@@ -1,0 +1,251 @@
+---
+title: "Effects of maternal and larval host plant interaction in the development of butterfly larvae"
+author: "Euisuk Han"
+date: "2 Dec 2022"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+fig_caption: yes
+pandoc_args: ["--wrap=none"]
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(kableExtra)
+library(pander)
+
+#knitr::opts_chunk$set(echo = TRUE)
+
+
+dat = read.csv("school/BIOS14/exercises/data/butterflies.csv")
+weight = dat$AdultWeight
+maternal = as.factor(dat$MaternalHost)
+larval = as.factor(dat$LarvalHost)
+
+subdat = dat[,c(2,4,7)]
+
+#         Larval   Maternal
+#group1 = Barbarea x Barbarea
+#group2 = Barbarea x Berteroa
+#group3 = Berteroa x Barbarea
+#group4 = Berteroa x Berteroa
+
+# Calculate the sum of the adult weights for each groups to calculate the summary statistics 
+group1 = c()
+group2 = c()
+group3 = c()
+group4 = c()
+
+for(individual in 1:nrow(subdat)){
+  if(subdat[individual, 1] == "Barbarea" && subdat[individual, 2] == "Barbarea"){
+    group1 = c(group1, subdat[individual, 3])
+  }else if(subdat[individual, 1] == "Barbarea" && subdat[individual, 2] == "Berteroa"){
+    group2 = c(group2, subdat[individual, 3])
+  }else if(subdat[individual, 1] == "Berteroa" && subdat[individual, 2] == "Barbarea"){
+    group3 = c(group3, subdat[individual, 3])
+  }else if(subdat[individual, 1] == "Berteroa" && subdat[individual, 2] == "Berteroa"){
+    group4 = c(group4, subdat[individual, 3])
+  }
+}
+
+summary_table = data.frame(c(round(mean(group1),2), round(mean(group2),2), 
+                             round(mean(group3),2), round(mean(group4),2)),
+                           c(round(sd(group1),2), round(sd(group2),2), 
+                             round(sd(group3),2), round(sd(group4),2)))
+
+colnames(summary_table)=c("Mean adult weight (mg)", "Standard deviation")
+
+group_table = data.frame(c("Barbarea","Barbarea","Berteroa","Berteroa"),
+                         c("Barbarea", "Berteroa", "Barbarea", "Berteroa"),
+                         row.names=c("Group 1", "Group 2", "Group 3", "Group 4"))
+colnames(group_table)=c("Larval host", "Maternal host")
+
+```
+
+## Introduction
+The importance of selecting approrpiate host plants for female butterflies to ovipost is a well understood fact. The choice of host plants is critical for the survival of her offspring, and is known to influence the development of the offspring and its characteristics^1^. In this analysis, the relationship between the maternal and larval host plants on the adult weight of the resulting butterfly larvae were investigated. A two-way analysis of variance (ANOVA) was carried out to analyze the main and interaction effects of the maternal and larval host plants on larval development.
+
+## Methods
+#### 1. Model fitting
+\  
+
+To investigate the relationship between the maternal and larval host plants on the adult weight of the larvae, a linear model was fitted with the adult weight as the response and the maternal and larval hosts as the predictor variables. 
+
+$$adult\_weight \sim maternal\_host*larval\_host$$
+
+#### 2. Confirmation of the model assumptions 
+\  
+
+The ANOVA model assumes a normal distribution of the data and the homogeneity of the variance between the groups. The residuals of the model was plotted against the fitted values to assess the homogeneity of the variance and a quartile-quartile (Q-Q) plot was used to confirm the normal distribution of the residuals in the data. 
+
+#### 3. Analysis of Variance (ANOVA)  
+\  
+
+The summary statistics of the fitted ANOVA model was examined to identify possible effects of the maternal and larval host plants on the adult weight of the larvae and the results were visualized using two boxplots and a two-way interaction plot with error bars fitted.
+
+## Results
+#### Summary statistics
+\  
+
+In order to simplify the preliminary analysis of the data, the data was divided into 4 groups according to the combination of maternal and larval host plants for the larvae. Then, the average weight and the standard deviation of the adult larvae for each groups were calculated (Table 1). Upon examination of the means, it is clear that the mean adult weight as well as the standard deviation for the 4 groups are extremely similar. All four groups showed an average adult weight of approximately 65 mg where group 4 had the lowest weight of 65.17 mg and group 2 had the highest weight of 65.38 mg.
+
+```{r echo=FALSE}
+kables(list(kable(group_table, booktabs=TRUE),
+            kable(summary_table, align="cccc", booktabs=TRUE)),
+            caption="Summary statistics of the raw data") %>% 
+  kable_styling(position = "center")
+```
+#### Confirmation of the model assumptions
+\  
+
+The data was then fitted to a two-way ANOVA model with the adult weight as the response variable and both the main effects and interaction effects of the maternal/larval host plants as the predictor variables. Before the model could be analyzed, the model assumptions were confirmed. A residuals versus fitted plot showed a flat LOWESS (Locally Weighted Scatterplot Smoothing) curve indicating the absence of a clear correlation between the residuals and the fitted values (Fig 1). Three outliers were identified at points 120, 194, and 240. The outliers were removed from subsequent analyses. A Leven's test for homogeneity of variance was carried out to verify the results from the plot and resulted in a p-value of 0.08356.
+
+```{r, fig.height = 3.4, fig.width = 6, echo=FALSE}
+m = aov(weight ~ maternal * larval)
+
+temp_data = cbind(fitted(m), residuals(m), abs(residuals(m)))
+temp_data = temp_data[order(temp_data[,3], decreasing=TRUE),]
+outliers_index = rownames(temp_data[1:3,])
+
+
+plot(fitted(m)+rnorm(length(fitted(m)), 0, 0.15), residuals(m), xlab="", ylab="",
+     xlim=c(48,68),
+     cex=1,
+     pch=1)
+abline(h=0, lty=2, col="grey")
+lines(lowess(fitted(m), residuals(m)), col="red")
+title(xlab="Fitted values", ylab="Residuals", line=2, cex=0.8)
+mtext(side=1, line=3, "Figure 1: A residuals v fitted plot with a LOWESS curve.",cex=0.8)
+text(x=temp_data[1:3,1]+0.8, y=temp_data[1:3, 2], outliers_index, font=0.8, cex=0.7)
+```
+\  
+
+A Q-Q plot was then plotted to determine whether the residuals in the data were distributed normally (Fig 2). The plot shows a clear linear pattern of the residuals along the reference line indicating that the residuals are distributed normally. 
+
+```{r, fig.height = 3, fig.width = 6, echo=FALSE}
+weight = weight[-c(120, 194, 240)]
+maternal = maternal[-c(120, 194, 240)]
+larval = larval[-c(120, 194, 240)]
+m = aov(weight ~ maternal * larval)
+qqnorm(rstandard(m), main="", xlab="", ylab="")
+qqline(rstandard(m), lty=2, col="grey")
+title(xlab="Theoretical quantiles", ylab="Standardized residuals", cex=0.4, line=2.5)
+mtext(side=1, line=3.5, cex=0.8, "Figure 2: A Q-Q plot of the standardized residuals with a reference line.")
+```
+\  
+
+\  
+
+
+#### Analysis of variance (ANOVA)
+\  
+
+The estimates for the mean adult weight for the four groups from the ANOVA results (Table 2) were extremely close to the actual mean values calculated from the raw data (Table 1). All of the estimates were within a standard error margin from the actual values. Group 2 had the largest estimated mean with 67.15±1.35 mg, which was 25.81% larger than the estimate for group 4, which had the lowest estimate of 49.82±2.21 mg. Group 1 and 3 were 2.68% and 19.48% smaller than group 2, respectively. The estimates were plotted on a two-way interaction plot with error bars to visualize the results of the ANOVA analysis (Fig 3). The p-values for the main effect of the larval host plant was 1.02e-29, indicating a statistical significance of its effect on the adult weight, while the effect of the maternal host plant had a high p-value of 0.263. The interaction effect also showed a statistically significant p-value of 0.00663.
+
+```{r, fig.height = 2, fig.width = 6, echo=FALSE}
+anova_sum = summary(m)
+m_lm = lm(weight~maternal*larval)
+anova_sum_lm = summary(m_lm)
+ss_t = anova_sum[[1]][1,2]+anova_sum[[1]][2,2]+anova_sum[[1]][3,2]+anova_sum[[1]][4,2]
+
+group1_est = round(anova_sum_lm[[4]][1,1],2)
+group2_est = round(anova_sum_lm[[4]][2,1],2)
+group3_est = round(anova_sum_lm[[4]][3,1],2)
+group4_est = round(anova_sum_lm[[4]][4,1],2)
+
+group1_se = round(anova_sum_lm[[4]][1,2],2)
+group2_se = round(anova_sum_lm[[4]][2,2],2)
+group3_se = round(anova_sum_lm[[4]][3,2],2)
+group4_se = round(anova_sum_lm[[4]][4,2],2)
+
+group1_t = round(anova_sum_lm[[4]][1,3],2)
+group3_t = round(anova_sum_lm[[4]][2,3],2)
+group2_t = round(anova_sum_lm[[4]][3,3],2)
+group4_t = round(anova_sum_lm[[4]][4,3],2)
+
+lm_sum_table = data.frame(c(paste(group1_est,"±",group1_se), 
+                            paste(group2_est+group1_est,"±",group2_se), 
+                            paste(group3_est+group1_est,"±",group3_se), 
+                            paste(group4_est+group1_est+group2_est+group3_est,"±",group4_se)),
+                          c(group1_t, group2_t, group3_t, group4_t),
+                          c(format(anova_sum_lm[[4]][1,4], digits=3),
+                            format(anova_sum_lm[[4]][2,4], digits=3),
+                            format(anova_sum_lm[[4]][3,4], digits=3),
+                            format(anova_sum_lm[[4]][4,4], digits=3)),
+                          row.names = c("Group 1", "Group 2", "Group 3", "Group 4"))
+colnames(lm_sum_table)=c("Estimate of mean (mg)", "t", "p")
+
+maternal_ss = anova_sum[[1]][1,2]
+larval_ss = anova_sum[[1]][2,2]
+int_ss = anova_sum[[1]][3,2]
+residuals_ss = anova_sum[[1]][4,2]
+
+maternal_p = anova_sum[[1]][1,5]
+larval_p = anova_sum[[1]][2,5]
+int_p = anova_sum[[1]][3,5]
+
+anova_sum_table = data.frame(c(round(maternal_ss, 2), 
+                               round(larval_ss, 2),
+                               round(int_ss, 2),
+                               round(residuals_ss, 2)),
+                             c(format(maternal_p, digits=3), 
+                               format(larval_p, digits=3),
+                               format(int_p, digits=3),NA),
+                             row.names=c("Maternal", 
+                                         "Larval", 
+                                         "Interaction", 
+                                         "Residuals"))
+colnames(anova_sum_table)=c("Sum Sq", "p")
+kables(list(kable(lm_sum_table, booktabs=TRUE, align="c"), 
+            kable(anova_sum_table, booktabs=TRUE, align="c")), 
+       caption="Summary of the ANOVA model fit") %>% 
+  kable_styling(latex_options = c("hold_position"))
+
+```
+
+
+```{r echo=FALSE}
+interaction.plot(x.factor=larval, trace.factor=maternal, response=weight, 
+                 type="b", pch=16, lty=1,col=c("black", "red"), ylim=c(45, 70), 
+                 ylab="Mean adult weight (mg)", xlab="",
+                 legend=FALSE)
+legend(1.83,69, legend = c("Barbarea", "Berteroa"), col=c("black", "red"), lty=1, title="Maternal host", cex=0.8)
+title(xlab="Larval host", cex=0.5, line=2)
+mtext(side=1, line=3, "Figure 3: Two-way interaction plot of the mean adult weight estimates",cex=0.8)
+
+temp = summary(m_lm)[[4]]
+
+
+arrows(x0=c(1.03, 2.03), x1=c(1.03, 2.03), 
+       y0=c(temp[1,1]-temp[1,2], 
+            temp[1,1]+temp[3,1]-temp[3,2]), 
+       y1=c(temp[1,1]+temp[1,2], 
+            temp[1,1]+temp[3,1]+temp[3,2]), 
+       angle=90,
+       code=3,
+       lwd=1,
+       length=0.1,
+       lty=2)
+arrows(x0=c(0.97, 1.97), x1=c(0.97, 1.97), 
+       y0=c(temp[1,1]+temp[2,1]-temp[2,2], 
+            temp[1,1]+temp[4,1]+temp[3,1]+temp[2,1]-temp[3,2]), 
+       y1=c(temp[1,1]+temp[2,1]+temp[2,2], 
+            temp[1,1]+temp[4,1]+temp[3,1]+temp[2,1]+temp[3,2]), 
+       angle=90,
+       code=3,
+       lwd=1,
+       col="red",
+       length=0.1,
+       lty=2)
+```
+
+## Conclusion
+Before the results from the ANOVA analysis could be interpreted, the data was checked first to ensure that the two assumptions of the ANOVA model was met. The relatively linear LOWESS regression line on the residuals versus fits plot (Fig 1) indicates that the variance between the different groups are homogeneous. This was verified using the Levene's test, which resulted in a p-value lower than 0.05, confirming that the first assumption was met. The ANOVA model also assumes the normal distribution of the residuals in the data. The second assumption was verified using the normal probability plot, which showed a clear linear distribution of the standardized residuals over the theoretical quantiles. 
+
+The p-values from the ANOVA analysis was then examined to identify which of the three effects: maternal, larval, and maternal:larval, had a statistically significant influence on the adult weight of the butterfly larvae. As expected, the maternal host plant did not have a statistically significant effect on the growth of the larvae. However, both the larval hosts and the interaction between the larval and maternal hosts had a p-value lower than 0.05, indicating an effect on the response variable. These results are reflected accurately on the two-way interaction plot where the two lines representing the maternal host plant crosses. While the effect of the larval host was anticipated, the significance of the interaction effect, albeit marginal, presents an interesting area for further investigation. 
+
+## References
+1. García-Barros E, Fartmann T.2009. Butterfly oviposition: sites, behaviour and modes. In:Settele J, Shreeve T, Konvička M, van Dick H, editors. Ecology of Butterflies in Europe.1st ed. Cambridge University Press. p.29-42.
+
+
