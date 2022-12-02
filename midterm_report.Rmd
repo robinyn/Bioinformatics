@@ -14,6 +14,7 @@ pandoc_args: ["--wrap=none"]
 library(knitr)
 library(kableExtra)
 library(pander)
+library(car)
 
 #knitr::opts_chunk$set(echo = TRUE)
 
@@ -127,6 +128,7 @@ A Q-Q plot was then plotted to determine whether the residuals in the data were 
 weight = weight[-c(120, 194, 240)]
 maternal = maternal[-c(120, 194, 240)]
 larval = larval[-c(120, 194, 240)]
+#print(leveneTest(weight~maternal*larval))
 m = aov(weight ~ maternal * larval)
 qqnorm(rstandard(m), main="", xlab="", ylab="")
 qqline(rstandard(m), lty=2, col="grey")
@@ -242,7 +244,7 @@ arrows(x0=c(0.97, 1.97), x1=c(0.97, 1.97),
 
 ## Conclusion
 Before the results from the ANOVA analysis could be interpreted, the data was checked first to ensure that the two assumptions of the ANOVA model was met. The relatively linear LOWESS regression line on the residuals versus fits plot (Fig 1) indicates that the variance between the different groups are homogeneous. This was verified using the Levene's test, which resulted in a p-value lower than 0.05, confirming that the first assumption was met. The ANOVA model also assumes the normal distribution of the residuals in the data. The second assumption was verified using the normal probability plot, which showed a clear linear distribution of the standardized residuals over the theoretical quantiles. 
-
+le
 The p-values from the ANOVA analysis was then examined to identify which of the three effects: maternal, larval, and maternal:larval, had a statistically significant influence on the adult weight of the butterfly larvae. As expected, the maternal host plant did not have a statistically significant effect on the growth of the larvae. However, both the larval hosts and the interaction between the larval and maternal hosts had a p-value lower than 0.05, indicating an effect on the response variable. These results are reflected accurately on the two-way interaction plot where the two lines representing the maternal host plant crosses. While the effect of the larval host was anticipated, the significance of the interaction effect, albeit marginal, presents an interesting area for further investigation. 
 
 ## References
@@ -253,3 +255,4 @@ The R code used for this analysis can be found in the following repository:
 \  
 
 https://github.com/robinyn/Bioinformatics/blob/36a5d47634f78c0b80833dcb9daed119f67089f3/midterm_report.Rmd
+
