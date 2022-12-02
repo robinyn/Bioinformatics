@@ -248,4 +248,8 @@ The p-values from the ANOVA analysis was then examined to identify which of the 
 ## References
 1. García-Barros E, Fartmann T.2009. Butterfly oviposition: sites, behaviour and modes. In:Settele J, Shreeve T, Konvička M, van Dick H, editors. Ecology of Butterflies in Europe.1st ed. Cambridge University Press. p.29-42.
 
+## R-code
+The R code used for this analysis can be found in the following repository:
+\  
 
+https://github.com/robinyn/Bioinformatics/blob/36a5d47634f78c0b80833dcb9daed119f67089f3/midterm_report.Rmd
