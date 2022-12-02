@@ -253,6 +253,5 @@ The p-values from the ANOVA analysis was then examined to identify which of the 
 ## R-code
 The R code used for this analysis can be found in the following repository:
 \  
-
-https://github.com/robinyn/Bioinformatics/blob/36a5d47634f78c0b80833dcb9daed119f67089f3/midterm_report.Rmd
+https://github.com/robinyn/Bioinformatics/blob/c4cc86178e4ab2aa1dee95f8dedae679294da9cb/midterm_report.Rmd
 
